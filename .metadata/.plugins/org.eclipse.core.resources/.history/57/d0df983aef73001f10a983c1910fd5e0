@@ -1,0 +1,21 @@
+package com.example.demo.repository;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.banking.model.Transaction;
+
+public interface TransactionRepository extends JpaRepository<Transaction, Long>{
+	
+	// Custom query to find transactions by account ID
+    List<Transaction> findByAccountId(Long accountId);
+
+    // Custom query to find transactions within a date range
+    List<Transaction> findByTransactionDateBetween(Date startDate, Date endDate);
+
+    // Custom query to find transactions by transaction type (deposit/withdrawal)
+    List<Transaction> findByTransactionType(String transactionType);
+
+}

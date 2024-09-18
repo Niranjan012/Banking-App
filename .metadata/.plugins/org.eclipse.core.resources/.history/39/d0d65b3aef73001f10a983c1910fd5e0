@@ -1,0 +1,40 @@
+package com.example.demo.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.banking.config.JwtTokenProvider;
+import com.banking.dto.LoginRequest;
+import com.banking.dto.RegisterRequest;
+import com.banking.model.User;
+import com.banking.service.UserService;
+
+@RestController
+@RequestMapping("/api/auth")
+public class UserController {
+	
+	@Autowired
+    private UserService userService;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+        return userService.registerUser(registerRequest);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        User user = userService.authenticateUser(loginRequest);
+        if (user != null) {
+            String token = jwtTokenProvider.createToken(user.getUsername(), user.getAuthorities());
+            return ResponseEntity.ok(new JwtResponse(token));
+        }
+        return ResponseEntity.badRequest().body("Invalid credentials");
+    }
+}

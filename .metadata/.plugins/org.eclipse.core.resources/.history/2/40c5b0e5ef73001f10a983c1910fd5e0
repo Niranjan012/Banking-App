@@ -1,0 +1,92 @@
+package com.banking.service;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.banking.config.JwtTokenProvider;
+import com.banking.dto.RegisterRequest;
+import com.banking.model.User;
+import com.banking.repository.UserRepository;
+
+public class UserService implements UserDetailsService {
+
+	@Autowired
+	private UserRepository userRepository;
+	
+	@Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtTokenProvider tokenProvider;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	public User saveUser(User user) {
+		return userRepository.save(user);
+	}
+
+	// Load user by username method for Spring Security
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		// Fetch the user by username
+		Optional<User> optionalUser = userRepository.findByUsername(username);
+
+		// Check if the user is present
+		if (optionalUser.isEmpty()) {
+			throw new UsernameNotFoundException("User not found with username: " + username);
+		}
+
+		// Extract the User from Optional and return it
+		User user = optionalUser.get();
+		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+				user.getAuthorities());
+	}
+
+	// Register a new user
+	public ResponseEntity<?> registerUser(RegisterRequest registerRequest) {
+		// Check if the user already exists
+		if (userRepository.existsByUsername(registerRequest.getUsername())) {
+			return ResponseEntity.badRequest().body("Username is already taken.");
+		}
+
+		// Create new user object
+		User user = new User();
+		user.setUsername(registerRequest.getUsername());
+		user.setPassword(passwordEncoder.encode(registerRequest.getPassword())); // Encode password
+		user.setEmail(registerRequest.getEmail());
+		user.setRole(registerRequest.getRole());
+
+		// Save user in the database
+		userRepository.save(user);
+
+		return ResponseEntity.ok("User registered successfully!");
+	}
+	
+	// Method for authenticating user
+    public String authenticateUser(String username, String password) {
+        // Perform authentication using Username and Password
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password)
+        );
+
+        // Set authentication in the security context
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Generate JWT token for the authenticated user
+        String jwtToken = tokenProvider.generateToken(authentication);
+
+        // Return the generated JWT token
+        return jwtToken;
+    }
+}

@@ -1,0 +1,14 @@
+package com.example.demo.config;
+
+import org.springframework.security.web.AuthenticationEntryPoint;
+
+public interface JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+    @Override
+    public void commence(HttpServletRequest request,
+                         HttpServletResponse response,
+                         AuthenticationException authException) throws IOException {
+        // Send 401 Unauthorized error response if the user is not authenticated
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized access");
+    }
+}

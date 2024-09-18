@@ -1,0 +1,37 @@
+package com.banking.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.banking.model.Transaction;
+import com.banking.repository.TransactionRepository;
+
+public class TransactionService {
+	
+	@Autowired
+    private TransactionRepository transactionRepository;
+
+    public Transaction deposit(Long accountId, double amount) {
+        // Implement deposit logic
+        return new Transaction(); // Placeholder
+    }
+
+    public Transaction withdraw(Long accountId, double amount) {
+        // Implement withdraw logic
+        return new Transaction(); // Placeholder
+    }
+
+    public Transaction transfer(Long fromAccountId, Long toAccountId, double amount) {
+        // Implement transfer logic
+        return new Transaction(); // Placeholder
+    }
+
+    public List<Transaction> getTransactionsByAccount(Long accountId) {
+        return transactionRepository.findByAccountId(accountId);
+    }
+
+    public List<Transaction> getTransactionsByTimeRange(Long accountId, String startTime, String endTime) {
+        return transactionRepository.findByAccountIdAndTimeRange(accountId, startTime, endTime);
+    }
+}
